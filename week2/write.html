@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link href="../mycss.css" rel="stylesheet" />
+    <link href="../common.css" rel="stylesheet" />
+    <script src="../myfunc.js" defer></script>
+  </head>
+  <body>
+    <section class="wrap">
+      <article class="header">
+        <div class="header-left">
+          <a href="javascript:history.back()">
+            <p class="line-1"></p>
+            <p class="line-2"></p>
+          </a>
+        </div>
+        <p>아무 말 대잔치</p>
+        <div class="header-right-overlay">
+          <span class="mtp10"
+            ><img
+              src="/images/스크린샷 2024-04-04 오후 4.38.05.png"
+              class="header-right"
+          /></span>
+          <div class="header-right-board">
+            <p><a href="/member/1">회원정보수정</a></p>
+            <p><a href="/member/1/password">비밀번호수정</a></p>
+            <p><a href="/">로그아웃</a></p>
+          </div>
+        </div>
+      </article>
+      <hr class="horizontal-rule" />
+
+      <div class="board" id="write-post">
+        <!-- fetch append -->
+      </div>
+    </section>
+    <script>
+      window.onload = function () {
+        const currentUrl = window.location.href;
+        const postId = currentUrl.split("/").pop();
+        const writePost = document.getElementById("write-post");
+        const div = document.createElement("div");
+        if (postId === "posts") {
+          console.log("게시글 작성");
+          div.innerHTML = `
+          <form
+            id="bbs_Form"
+            method="post"
+            action="/posts"
+            onsubmit="return board_sendit()"
+            enctype="multipart/form-data"
+          >
+            <h3 style="text-align: center">게시글 작성</h3>
+            <p>제목*</p>
+            <input
+              id="subject"
+              type="text"
+              name="subject"
+              placeholder="제목을 입력해주세요.(최대 26글자)"
+              class="form-control2"
+              maxlength="26"
+            />
+            <p class="mtp30">내용*</p>
+            <textarea
+              id="content"
+              class="form-control2-textarea"
+              placeholder="내용을 입력해주세요"
+            ></textarea>
+            <p class="helper">*helper text</p>
+            <p>이미지*</p>
+            <input type="file" name="img-file" style="margin-bottom: 40px" />
+            <button
+              class="send-btn mtp30"
+              style="width: 70%; margin-left: 10%"
+              id="send-btn"
+            >
+              <p>완료</p>
+            </button>
+          </form>
+          `;
+          writePost.appendChild(div);
+        } else {
+          console.log("게시글 수정");
+          fetch("../data/post.json")
+            .then((Response) => {
+              if (!Response.ok) {
+                throw new Error("network");
+              }
+              return Response.json();
+            })
+            .then((data) => {
+              data.posts.forEach((kkk) => {
+                if (kkk.post_id == postId) {
+                  div.innerHTML = `
+                  <form
+                    id="bbs_Form"
+                    method="post"
+                    action="/posts"
+                    onsubmit="return board_sendit()"
+                    enctype="multipart/form-data"
+                  >
+                    <h3 style="text-align: center">게시글 작성</h3>
+                    <p>제목*</p>
+                    <input
+                      id="subject"
+                      type="text"
+                      name="subject"
+                      placeholder="제목을 입력해주세요.(최대 26글자)"
+                      class="form-control2"
+                      maxlength="26"
+                      value="${kkk.post_title}"
+                    />
+                    <p class="mtp30">내용*</p>
+                    <textarea
+                      id="content"
+                      class="form-control2-textarea"
+                      placeholder="내용을 입력해주세요"
+                    >${kkk.post_content}</textarea>
+                    <p class="helper">*helper text</p>
+                    <p>이미지*</p>
+                    <input type="file" name="img-file" style="margin-bottom: 40px" />
+                    <button
+                      class="send-btn mtp30"
+                      style="width: 70%; margin-left: 10%"
+                      id="send-btn"
+                    >
+                      <p>완료</p>
+                    </button>
+                  </form>
+                    `;
+                  writePost.appendChild(div);
+                  document
+                    .getElementById("subject")
+                    .addEventListener("input", checkContentarea);
+                  document
+                    .getElementById("content")
+                    .addEventListener("input", checkContentarea);
+                }
+              });
+            })
+            .catch((error) => {
+              console.error("error", error);
+            });
+        }
+        function checkContentarea() {
+          const subject = document.getElementById("subject").value;
+          const content = document.getElementById("content").value;
+          if (subject.trim() !== "" && content.trim() !== "") {
+            document.getElementById("send-btn").style.backgroundColor =
+              "#7F6AEE";
+          } else {
+            document.getElementById("send-btn").style.backgroundColor =
+              "#aca0eb";
+          }
+        }
+      };
+    </script>
+  </body>
+</html>
