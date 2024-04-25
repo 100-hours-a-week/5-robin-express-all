@@ -1,18 +1,1 @@
-{
-    "data": [
-      {
-        "user_id": 1,
-        "email": "example@example.com",
-        "password": "Aa1234567890!",
-        "nickname": "example",
-        "profile_image_path": "/images/스크린샷 2024-04-04 오후 4.38.05.png"
-      },
-      {
-        "user_id": 2,
-        "email": "robin@example.com",
-        "password": "Aa1234567890!",
-        "nickname": "robin",
-        "profile_image_path": "/images/스크린샷 2024-04-04 오후 4.38.05.png"
-      }
-    ]
-  }
+[{"user_id":1,"email":"example@example.com","password":"Aa1234567890!","nickname":"example","profile_image_path":"/images/스크린샷 2024-04-04 오후 4.38.05.png"},{"user_id":2,"email":"robin@example.com","password":"Aa1234567890!","nickname":"robin","profile_image_path":"/images/스크린샷 2024-04-04 오후 4.38.05.png"},{"user_id":3,"email":"example@example.coma","password":"Aa1234567890!","nickname":"robin1","profile_image_path":"배경_카클스_yellow.png"},{"user_id":4,"email":"example@example.coma","password":"Aa1234567890!","nickname":"1test","profile_image_path":"배경_카클스_yellow.png"},{"user_id":5,"email":"example@exampel.com","password":"Aa1234567890!","nickname":"roboboin","profile_image_path":"000"},{"user_id":6,"email":"example@example.coma","password":"Aa1234567890!","nickname":"전태웅","profile_image_path":"000"},{"user_id":7,"email":"example@example.coma","password":"Aa1234567890!","nickname":"robin1","profile_image_path":"000"},{"user_id":8,"email":"example@example.coma","password":"Aa1234567890!","nickname":"robin1","profile_image_path":"000"},{"user_id":9,"email":"example@example.coma","password":"Aa1234567890!","nickname":"1test","profile_image_path":"000"}]

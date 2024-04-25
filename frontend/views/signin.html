@@ -6,7 +6,7 @@
     <title>Document</title>
     <link href="../mycss.css" rel="stylesheet" />
     <link href="../common.css" rel="stylesheet" />
-    <script src="/myfunc.js" defer></script>
+    <script src="../javascript/signin.js" defer></script>
   </head>
 
   <body>
@@ -27,18 +27,18 @@
         <h3 style="text-align: center">회원가입</h3>
         <form
           id="signin_Form"
-          method="post"
-          action="/users/login"
+          method="POST"
+          action="http://localhost:3065/users/signup"
           onsubmit="return signin_sendit()"
         >
           <div class="profile">
             <p>프로필 사진*</p>
             <p class="helper" id="helper_profile">*프로필 사진을 추가해주세요.</p>
             <input
-              id="profile-upload-input"
+              id="profile"
               type="file"
               style="display: none"
-              name="profile-upload-img"
+              name="profile"
               onchange="checkProfile()"
             />
             <div
@@ -140,82 +140,5 @@
         </p>
       </div>
     </section>
-    <script>
-      document.getElementById('profile-upload-input').addEventListener('change', (event) => {
-        const selectedFile = event.target.files[0];
-        console.log('bb');
-        if(selectedFile) {
-          console.log('aa');
-          document.getElementById('helper_profile').style.display = 'none';
-        }
-      });
-      document.getElementById('email').addEventListener('input', () => {
-        const evalue = document.getElementById('email');
-        const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        const h_email = document.getElementById('helper_email');
-        if(evalue.value ==='') {
-          h_email.textContent = '이메일을 입룍해주세요';
-        } else if(!pattern.test(evalue.value) || evalue.value.length < 7) {
-          h_email.textContent = '올바른 이메일 주소 형식을 입력해주세요. (예: example@example.com)';
-        } else if(evalue.value === 'example@example.com') {
-          h_email.textContent = '중복된 이메일입니다.';
-        } else {
-          console.log('btn1');
-          h_email.textContent = '사용가능한 이메일입니다.';
-        }
-      });
-      document.getElementById('password').addEventListener('input', () => {
-        const evalue = document.getElementById('password');
-        const pattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,20}$/;
-        const h_pwd = document.getElementById('helper_pwd');
-        if(evalue.value ==='') {
-          h_pwd.textContent = '비밀번호를 입력해주세요';
-        } else if(!pattern.test(evalue.value)) {
-          h_pwd.textContent = '비밀번호는 8자 이상, 20자 이하이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다.';
-        } else {
-          console.log('btn1');
-          h_pwd.textContent = '사용가능한 비밀번호입니다.';
-        }
-      });
-      document.getElementById('password_chk').addEventListener('input', () => {
-        const evalue = document.getElementById('password_chk');
-        const h_pwd = document.getElementById('helper_pwd_chk');
-        const evalue_chk = document.getElementById('password');
-        console.log(evalue.value);
-          console.log(evalue_chk.value);
-        if(evalue.value ==='') {
-          h_pwd.textContent = '비밀번호를 입력해주세요';
-        } else if(evalue.value != evalue_chk.value) {
-          h_pwd.textContent = '비밀번호가 다릅니다.';
-        } else {
-          console.log('btn1');
-          h_pwd.textContent = '사용가능한 비밀번호입니다.';
-        }
-      });
-      document.getElementById('nickname').addEventListener('input', () => {
-        const evalue = document.getElementById('nickname');
-        const h_pwd = document.getElementById('helper_nickname');
-        const pattern = /\s/g;
-        console.log(evalue.value);
-        if(evalue.value ==='') {
-          h_pwd.textContent = '닉네임을 입력해주세요';
-        } else if(pattern.test(evalue.value)) {
-          h_pwd.textContent = '띄어쓰기를 없애주세요.';
-        } else if(evalue.value === 'robin') {
-          h_pwd.textContent = '중복된 닉네임 입니다.';
-        }else if(evalue.value.length > 10) {
-          h_pwd.textContent = '닉네임은 최대 10자까지 가능합니다.';
-        } else {
-          console.log('btn1');
-          h_pwd.textContent = '사용가능한 닉네임입니다.';
-        }
-      });
-
-      function imgInput() {
-        document.getElementById("img-input").addEventListener("click", () => {
-        document.getElementById("profile-upload-input").click();
-        });
-      }
-    </script>
   </body>
 </html>
