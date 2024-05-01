@@ -15,6 +15,9 @@ router.get('/new', (req, res) => {
 router.get('/:postId', (req, res) => {
     res.sendFile(__dirname+'/views/view.html');
 });
+router.post('/:postId', (req, res) => {
+    res.sendFile(__dirname+'/views/write.html');
+})
 
 
 export default router;

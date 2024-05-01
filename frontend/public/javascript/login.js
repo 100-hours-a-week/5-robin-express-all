@@ -1,7 +1,6 @@
 function login_sendit() {
-    let form = document.getElementById("login_Form");
-    let email = form.email.value;
-    let password = form.password.value;
+    let email = document.getElementById('email').value;
+    let password = document.getElementById('password').value;
     const pwdHelper = document.getElementById("helper-text");
     const pattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-za-z0-9\-]+/;
     if (!checkEmail(email)) {
@@ -18,12 +17,19 @@ function login_sendit() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ email: email, password: password }),
       })
       .then(response => {
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+            if(response.status === 401) {
+                alert('비밀번호가 다릅니다.');
+                return;
+            } else {
+                throw new Error('Network response was not ok');
+            }
         }
+        console.log(response.status);
         if(response.status === 200) {
             window.location.href = '/posts';
         }
@@ -32,6 +38,7 @@ function login_sendit() {
       .then(data => {
         // 응답 데이터를 처리합니다.
         console.log(data);
+        return;
         // 여기서 받은 응답을 이용하여 다음 동작을 수행할 수 있습니다.
       })
       .catch(error => {

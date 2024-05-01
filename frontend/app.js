@@ -10,6 +10,9 @@ import userRouter from './routes/user.js';
 app.use(express.static("public"));
 app.use(cors());
 
+app.get('/', (req, res) => {
+  res.sendFile(__dirname+'/views/login.html');
+})
 app.use('/posts', postRouter);
 app.use('/users', userRouter);
 app.listen(3000, () => {

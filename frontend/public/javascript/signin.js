@@ -12,7 +12,6 @@ function signin_sendit() {
     if (profile_img == "") {
       console.log("프로필업로드");
     }
-    console.log(profile_img);
     const name_chk = checkNickName(nickname);
     console.log(name_chk);
     console.log(nickname);
@@ -60,8 +59,22 @@ function signin_sendit() {
             method: 'POST',
             body: formData
         })
-        .then(response => console.log(response));
-        form.submit();
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            const messageInput = document.createElement('input');
+            messageInput.type = 'hidden';
+            messageInput.name = 'profilePath';
+            messageInput.value = data.message;
+            form.appendChild(messageInput);
+            alert('회원가입 완료');
+            form.submit();
+        })
+        return false;
     }
   }
 

@@ -1,20 +1,3 @@
-
-
-function board_sendit() {
-  let form = document.getElementById("bbs_Form");
-  let subject = form.subject.value;
-  let content = form.content.value;
-  if (subject == "" || content == "") {
-    alert("제목, 내용을 모두 작성해주세요.");
-    return false;
-  } else {
-    document.getElementById("send-btn").style.backgroundColor = "#7F6AEE";
-    setTimeout(function () {
-      form.submit();
-    }, 30000);
-  }
-}
-
 function member_sendit() {
   let form = document.getElementById("member_Form");
   const heltext = document.getElementById("helper-nickname");

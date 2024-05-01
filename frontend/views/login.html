@@ -18,11 +18,8 @@
       <div class="board">
         <h3 style="text-align: center">로그인</h3>
         <div class="write-form">
-          <form
+          <div
             id="login_Form"
-            method="post"
-            action="/posts"
-            onsubmit="return login_sendit()"
           >
             <p>이메일</p>
             <input
@@ -43,10 +40,10 @@
               name="password"
             />
             <p class="helper" id="helper-text">*비밀번호를 입력해주세요.</p>
-            <button id="login-btn" class="send-btn">
+            <button id="login-btn" class="send-btn" onclick="javascript:login_sendit()">
               <p>로그인</p>
             </button>
-          </form>
+          </div>
           <p style="margin-left: 40%"><a href="/users/signup">회원가입</a></p>
         </div>
       </div>
