@@ -4,11 +4,12 @@ const { upload } = require('../controllers/fileStorage.js');
 
 const __dpath = path.resolve();
 
-const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
-let users = JSON.parse(userFile);
-const user = users;
+
 
 function validAccount(req, res) {
+    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
+    let users = JSON.parse(userFile);
+    const user = users;
     const email = req.body.email;
     const password = req.body.password;
     if (!email) {
@@ -26,7 +27,7 @@ function validAccount(req, res) {
             }
         }
         if (check > -1) {
-            //세션디스트로이 로그인에서 가능?
+            //세션디스트로이 로그인에서
             
             req.session.user = user[check];
             console.log(req.session.user);
@@ -50,6 +51,9 @@ function validAccount(req, res) {
 }
 
 function signAccount(req, res) {
+    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
+    let users = JSON.parse(userFile);
+    const user = users;
     const email = req.body.email;
     const password = req.body.password;
     const nickname = req.body.nickname;
@@ -87,10 +91,110 @@ function uploadProfile(req, res) {
         }
     });
 }
-//이미지파일업로드오류수정
+
+function editAccount(req, res) {
+    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
+    let users = JSON.parse(userFile);
+    const user = users;
+    const user_id = req.body.user_id;
+    const nickname = req.body.nickname;
+    const profilePath = req.body.profilePath;
+    const check_img = req.body.check_img;
+
+    const edituser = [];
+    if(check_img == '0') {
+        console.log("keep img");
+        for (let i = 0; i < user.length; i++) {
+            if (user[i].user_id == user_id) {
+                console.log(user_id+"유저 변경");
+                const userData = {
+                    user_id: user_id,
+                    email: user[i].email,
+                    password: user[i].password,
+                    nickname: nickname,
+                    profile_image_path: user[i].profile_image_path
+                };
+                req.session.user = userData;
+                edituser.push(userData);
+            } else {
+                edituser.push(user[i]);
+            }
+        }
+        const newUser = JSON.stringify(edituser);
+        fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
+        res.redirect('http://localhost:3000/users/'+user_id);
+    } else {
+        console.log("change img");
+        for (let i = 0; i < user.length; i++) {
+            if (user[i].user_id == user_id) {
+                console.log(user_id+"유저 변경");
+                const userData = {
+                    user_id: user_id,
+                    email: user[i].email,
+                    password: user[i].password,
+                    nickname: nickname,
+                    profile_image_path: profilePath
+                };
+                edituser.push(userData);
+            } else {
+                edituser.push(user[i]);
+            }
+        }
+        const newUser = JSON.stringify(edituser);
+        fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
+        res.redirect('http://localhost:3000/users/'+user_id);
+    }
+}
+
+function editPwd(req, res) {
+    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
+    let users = JSON.parse(userFile);
+    const user = users;
+    const user_id = req.body.user_id;
+    const password = req.body.password;
+    const editpwd = [];
+    for(let i = 0; i < user.length; i++) {
+        if(user[i].user_id == user_id) {
+            const userData = {
+                user_id: user_id,
+                email: user[i].email,
+                password: password,
+                nickname: user[i].nickname,
+                profile_image_path: user[i].profile_image_path
+            };
+            editpwd.push(userData);
+        } else {
+            editpwd.push(user[i]);
+        }
+    }
+    const newUser = JSON.stringify(editpwd);
+    fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
+    res.status(200).json({message: "edit-password"});
+}
+
+function delAccount(req, res) {
+    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
+    let users = JSON.parse(userFile);
+    const user = users;
+    const user_id = req.body.user_id;
+    const deluser = [];
+    for(let i = 0; i < user.length; i++) {
+        if(user[i].user_id == user_id) {
+            console.log(user_id+'삭제');
+        } else {
+            deluser.push(user[i]);
+        }
+    }
+    const newUser = JSON.stringify(deluser);
+    fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
+    res.status(200).json({message: "del-password"});
+}
 
 module.exports = {
     validAccount,
     signAccount,
-    uploadProfile
+    uploadProfile,
+    editAccount,
+    editPwd,
+    delAccount
 };

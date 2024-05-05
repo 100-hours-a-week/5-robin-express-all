@@ -10,9 +10,7 @@
   </head>
   <body>
     <section class="wrap">
-      <article class="wrap" id="header">
-        
-      </article>
+      <article class="wrap" id="header"></article>
 
       <hr class="horizontal-rule" />
 
@@ -27,15 +25,23 @@
             placeholder="댓글을 입력해주세요"
           ></textarea>
           <hr class="line" />
-          <button class="write-btn" id="comment-btn" onclick="send_comment()" style="display: block;"><p>댓글등록</p></button>
-          <button class="write-btn" id="edit-comment-btn" style="display: none;"><p>댓글수정</p></button>
+          <button
+            class="write-btn"
+            id="comment-btn"
+            onclick="send_comment()"
+            style="display: block"
+          >
+            <p>댓글등록</p>
+          </button>
+          <button class="write-btn" id="edit-comment-btn" style="display: none">
+            <p>댓글수정</p>
+          </button>
         </div>
 
         <div class="board-title">
-          
-            <div id="view-comment">
-              <!-- comments append -->
-            </div>
+          <div id="view-comment">
+            <!-- comments append -->
+          </div>
         </div>
       </div>
     </section>

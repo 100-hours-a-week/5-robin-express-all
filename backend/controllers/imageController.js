@@ -16,7 +16,6 @@ function imageView(req, res) {
 
 
 
-//이미지파일업로드오류수정
 
 module.exports = {
     imageView
