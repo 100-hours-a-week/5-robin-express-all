@@ -1,7 +1,5 @@
-window.onload = async function () {
+window.onload = async () => {
   const globalData = await getUserNameById();
-  console.log(globalData);
-
   const headerList = document.getElementById("header");
   const header_div = document.createElement("div");
   header_div.classList.add("header");
@@ -16,12 +14,12 @@ window.onload = async function () {
         <div class="header-right-overlay">
             <span class="mtp10"
             ><img
-                src="http://localhost:3065/${globalData.profile_image_path}"
+                src="http://localhost:3065/${globalData.data.profile_path}"
                 class="header-right"
             /></span>
             <div class="header-right-board">
-            <p><a href="/users/${globalData.user_id}">회원정보수정</a></p>
-            <p><a href="/users/${globalData.user_id}/password">비밀번호수정</a></p>
+            <p><a href="/users/${globalData.data.id}">회원정보수정</a></p>
+            <p><a href="/users/${globalData.data.id}/password">비밀번호수정</a></p>
             <p><a href="/">로그아웃</a></p>
             </div>
         </div>
@@ -30,145 +28,167 @@ window.onload = async function () {
 
   const currentUrl = window.location.href;
   const postId = currentUrl.split("/").pop();
-  fetch("http://localhost:3065/posts/" + postId)
-    .then((Response) => {
-      if (!Response.ok) {
-        throw new Error("netword");
-      }
-      return Response.json();
-    })
-    .then((data) => {
-      const viewPost = document.getElementById("view-post");
-      data.forEach((kkk) => {
-        if (kkk.post_id == postId) {
-          console.log(kkk.post_id);
-          console.log(kkk.file_path);
-          const div = document.createElement("div");
-          div.innerHTML = `
-            <h3>${kkk.post_title}</h3>
-            <div class="view-writer">
-              <div class="view-writer sub">
-                <img
-                  src="http://localhost:3065/${kkk.profile_image_path}"
-                  class="header-right"
-                />
-                <h4 class="mlp10">${kkk.nickname}</h4>
-                <p class="mlp30">${kkk.created_at.replace(/[TZ.]/g, " ")}</p>
-              </div>
-              <div class="view-writer sub">
-                <form action="/posts/${kkk.post_id}" method="post">
-                  <button class="edit-btn" style="margin-right: 10px" id="edit-btn">수정</button>
-                </form>
-                <button class="edit-btn" id="bbs" onclick="modalView('bbs')">삭제</button>
-                <div class="modal hidden" id="modal_bbs">
-                  <div class="modal_overlay"></div>
-                  <div class="modal_content">
-                    <h2>게시글을 삭제하시겠습니까?</h2>
-                    <h4>삭제한 내용은 복구할 수 없습니다.</h4>
-                    <button style="background-color: black; width: 100px; height: 50px; border-radius: 10px; border: 0"><p style="color: white;">취소</p></button>
-                    <button style="background-color: #aca0eb; width: 100px; height: 50px; border-radius: 10px; border: 0" onclick="deletePost(${kkk.post_id})">확인</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <hr class="board-line" />
-          <div class="board-cont">
+  const viewResponse = await fetch("http://localhost:3065/posts/" + postId, {
+    method: 'GET',
+  });
+  if(!viewResponse.ok) {
+    throw new Error("게시물 불러오기 오류");
+  }
+  if(viewResponse.status === 200) {
+    const viewPost = document.getElementById("view-post");
+    const jsonData = await viewResponse.json();
+    const data = jsonData.data;
+    const kkk = data[0];
+    const originalDateStr = kkk.created_at;
+    // Date 객체로 변환
+    const date = new Date(originalDateStr);
+
+    // UTC 기준으로 년, 월, 일, 시간, 분, 초를 추출
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    const hours = String(date.getUTCHours()).padStart(2, '0');
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+    // 원하는 형식으로 조합
+    const formattedDateStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    const div = document.createElement("div");
+        div.innerHTML = `
+        <h3>${kkk.title}</h3>
+        <div class="view-writer">
+            <div class="view-writer sub">
             <img
-              src="http://localhost:3065/${kkk.file_path}"
-              class="view-file"
+                src="http://localhost:3065/${kkk.profile_path}"
+                class="header-right"
             />
-            <p>
-              ${kkk.post_content}
-            </p>
-            <div style="display: flex; justify-content: center">
-              <button class="view-container-btn"><span id="cutNum">${kkk.hits}</span><br />조회수</button>
-              <button class="view-container-btn"><span id="cutNum">${kkk.comment_count}</span><br />댓글</button>
+            <h4 class="mlp10">${kkk.nickname}</h4>
+            <p class="mlp30">${formattedDateStr}</p>
             </div>
-            `;
-          viewPost.appendChild(div);
-        }
-      });
-      cutNum();
-    })
-    .catch((error) => {
-      console.error("error", error);
+            <div class="view-writer sub">
+            <form action="/posts/${kkk.id}" method="post">
+                <button class="edit-btn" style="margin-right: 10px" id="edit-btn">수정</button>
+            </form>
+            <button class="edit-btn" id="bbs" onclick="modalView('bbs')">삭제</button>
+            <div class="modal hidden" id="modal_bbs">
+                <div class="modal_overlay"></div>
+                <div class="modal_content">
+                <h2>게시글을 삭제하시겠습니까?</h2>
+                <h4>삭제한 내용은 복구할 수 없습니다.</h4>
+                <button style="background-color: black; width: 100px; height: 50px; border-radius: 10px; border: 0"><p style="color: white;">취소</p></button>
+                <button style="background-color: #aca0eb; width: 100px; height: 50px; border-radius: 10px; border: 0" onclick="deletePost(${kkk.id}, ${globalData.data.id})">확인</button>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+        <hr class="board-line" />
+        <div class="board-cont">
+        <img
+            src="http://localhost:3065/${kkk.file_path}"
+            class="view-file"
+        />
+        <p>
+            ${kkk.content}
+        </p>
+        <div style="display: flex; justify-content: center">
+            <button class="view-container-btn"><span id="cutNum">${kkk.hits}</span><br />조회수</button>
+            <button class="view-container-btn"><span id="cutNum">${kkk.comments}</span><br />댓글</button>
+        </div>
+        `;
+        viewPost.appendChild(div);
+    };
+    cutNum();
+    const cmtResponse = await fetch("http://localhost:3065/posts/" + postId+"/comments", {
+        method: 'GET'
     });
-  fetch("http://localhost:3065/posts/" + postId + "/comments")
-    .then((Response) => {
-      if (!Response.ok) {
-        throw new Error("net");
-      }
-      return Response.json();
-    })
-    .then((data) => {
-      const commentPost = document.getElementById("view-comment");
-      data.forEach((kkk) => {
-        if (postId == kkk.post_id) {
-          const div = document.createElement("div");
-          div.innerHTML = `
-            <div class="view-writer">
-              <div style="display: flex; flex-direction: column">
+    if(!cmtResponse.ok) {
+        throw new Error("댓글 불러오기 오류");
+    }
+    if(cmtResponse.status === 200) {
+        const commentPost = document.getElementById("view-comment");
+        const jsonData = await cmtResponse.json();
+        const cmtData = jsonData.data;
+        for (const ckkk of cmtData) {
+            const originalDateStr = ckkk.created_at;
+            // Date 객체로 변환
+            const date = new Date(originalDateStr);
+
+            // UTC 기준으로 년, 월, 일, 시간, 분, 초를 추출
+            const year = date.getUTCFullYear();
+            const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(date.getUTCDate()).padStart(2, '0');
+            const hours = String(date.getUTCHours()).padStart(2, '0');
+            const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+
+            // 원하는 형식으로 조합
+            const formattedDateStr = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            const div = document.createElement("div");
+            div.innerHTML = `
+                <div class="view-writer">
+                <div style="display: flex; flex-direction: column">
+                    <div class="view-writer sub">
+                    <img
+                        src="http://localhost:3065/${ckkk.profile_path}"
+                        class="header-right"
+                    />
+                    <h4 style="margin-left: 10px">${ckkk.nickname}</h4>
+                    <p style="margin-left: 30px">${formattedDateStr}</p>
+                    </div>
+                    <div>${ckkk.content}</div>
+                </div>
                 <div class="view-writer sub">
-                  <img
-                    src="http://localhost:3065/${kkk.profile_image_path}"
-                    class="header-right"
-                  />
-                  <h4 style="margin-left: 10px">${kkk.nickname}</h4>
-                  <p style="margin-left: 30px">${kkk.created_at}</p>
-                </div>
-                <div>${kkk.content}</div>
-              </div>
-              <div class="view-writer sub">
-                <button class="edit-btn" style="margin-right: 10px" onclick="changeEdit(${kkk.comment_id}, '${kkk.content.replace(/\s+/g, "")}')">수정</button>
-                <button
-                  class="edit-btn"
-                  id="comment-del_${kkk.comment_id}"
-                  onclick="modalView('comment-del_${kkk.comment_id}')"
-                >
-                  삭제
-                </button>
-                <div class="modal hidden" id="modal_comment-del_${kkk.comment_id}">
-                  <div class="modal_overlay"></div>
-                  <div class="modal_content">
-                    <h2>댓글을 삭제하시겠습니까?</h2>
-                    <h4>삭제한 내용은 복구할 수 없습니다.</h4>
+                    <button class="edit-btn" style="margin-right: 10px" onclick="changeEdit(${ckkk.id}, '${escapeContent(ckkk.content)}')">수정</button>
                     <button
-                      style="
-                        background-color: black;
-                        width: 100px;
-                        height: 50px;
-                        border-radius: 10px;
-                        border: 0;
-                      "
+                    class="edit-btn"
+                    id="comment-del_${ckkk.id}"
+                    onclick="modalView('comment-del_${ckkk.id}')"
                     >
-                      <p style="color: white">취소</p>
+                    삭제
                     </button>
-                    <button
-                      style="
-                        background-color: #aca0eb;
-                        width: 100px;
-                        height: 50px;
-                        border-radius: 10px;
-                        border: 0;
-                      "
-                      onclick="deleteComment(${kkk.comment_id})"
-                    >
-                      확인
-                    </button>
-                  </div>
+                    <div class="modal hidden" id="modal_comment-del_${ckkk.id}">
+                    <div class="modal_overlay"></div>
+                    <div class="modal_content">
+                        <h2>댓글을 삭제하시겠습니까?</h2>
+                        <h4>삭제한 내용은 복구할 수 없습니다.</h4>
+                        <button
+                        style="
+                            background-color: black;
+                            width: 100px;
+                            height: 50px;
+                            border-radius: 10px;
+                            border: 0;
+                        "
+                        >
+                        <p style="color: white">취소</p>
+                        </button>
+                        <button
+                        style="
+                            background-color: #aca0eb;
+                            width: 100px;
+                            height: 50px;
+                            border-radius: 10px;
+                            border: 0;
+                        "
+                        onclick="deleteComment(${ckkk.id})"
+                        >
+                        확인
+                        </button>
+                    </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-            `;
-          commentPost.appendChild(div);
+                </div>
+                `;
+            commentPost.appendChild(div);
         }
-      });
-    })
-    .catch((error) => {
-      console.error("error", error);
-    });
+    }
 };
+
+function escapeContent(content) {
+    // 공백을 제거하고, 필요한 경우 이스케이프 처리
+    return content.replace(/\s+/g, "");
+}
 
 function cutNum() {
   //const element = document.getElementById('cutNum');
@@ -182,33 +202,57 @@ function cutNum() {
   }
 }
 
-async function send_comment() {
-  const comment_user = await getUserNameById();
-  const currentUrl = window.location.href;
-  const post_id = currentUrl.split("/").pop();
-  const formDataString = `post_id=${post_id}&content=${encodeURIComponent(document.getElementById("textarea-input").value)}
-    &nickname=${comment_user.nickname}&profilePath=${comment_user.profile_image_path}&comment_id=-1`;
-  console.log(comment_user.nickname);
-  console.log(comment_user.profile_image_path);
-  fetch("http://localhost:3065/posts/" + post_id + "/comments", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: formDataString,
-  })
-    .then((Response) => {
-      if (!Response.ok) {
-        throw new Error("netword");
-      }
-      alert("댓글이 등록되었습니다");
-      location.reload();
-      return Response.json();
-    })
-    .then((data) => {})
-    .catch((error) => {
-      console.error("error", error);
-    });
+const send_comment = async () => {
+    const currentUrl = window.location.href;
+    const post_id = currentUrl.split("/").pop();
+    const formDataString = `post_id=${post_id}&content=${encodeURIComponent(document.getElementById("textarea-input").value)}`;
+    try {
+        const response = await fetch("http://localhost:3065/posts/" + post_id + "/comments", {
+            method: "POST",
+            headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            },
+            credentials: "include",
+            body: formDataString,
+        });
+        if(!response.ok) {
+            throw new Error("댓글 등록 오류");
+        }
+        if(response.status === 201) {
+            alert("댓글 등록 완료");
+            window.location.reload();
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+const edit_comment = async (comment_id) => {
+    const currentUrl = window.location.href;
+    const post_id = currentUrl.split("/").pop();
+    const formDataString = `post_id=${post_id}&content=${encodeURIComponent(document.getElementById("textarea-input").value)}`;
+    try {
+        const response = await fetch("http://localhost:3065/posts/" + post_id + "/comments/" + comment_id, {
+            method: "PATCH",
+            headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            },
+            credentials: "include",
+            body: formDataString,
+        });
+        if(response.status === 401) {
+            alert("댓글 수정 권한 없음");
+        }
+        if(!response.ok) {
+            throw new Error("댓글 수정 오류");
+        }
+        if(response.status === 200) {
+            alert("댓글 수정 완료");
+            window.location.reload();
+        }
+    } catch(e) {
+        console.error(e);
+    }
 }
 
 function changeEdit(comment_id, content) {
@@ -217,31 +261,6 @@ function changeEdit(comment_id, content) {
   editButton.style.display = "block"; // 버튼을 보이게 만듭니다.
   document.getElementById("textarea-input").value = content;
   editButton.onclick = edit_comment.bind(null, comment_id);
-}
-function edit_comment(comment_id) {
-  const currentUrl = window.location.href;
-  const post_id = currentUrl.split("/").pop();
-  const formDataString = `post_id=${post_id}&content=${encodeURIComponent(document.getElementById("textarea-input").value)}
-    &nickname=blank&profilePath=blank&comment_id=${comment_id}`;
-  fetch("http://localhost:3065/posts/" + post_id + "/comments/" + comment_id, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: formDataString,
-  })
-    .then((Response) => {
-      if (!Response.ok) {
-        throw new Error("netword");
-      }
-      alert("댓글이 수정되었습니다");
-      location.reload();
-      return Response.json();
-    })
-    .then((data) => {})
-    .catch((error) => {
-      console.error("error", error);
-    });
 }
 
 function modalView(id) {
@@ -270,7 +289,6 @@ async function getUserNameById() {
       throw new Error("Network");
     }
     const data = await response.json();
-    console.log(data);
     return data;
   } catch (error) {
     console.error("there", error);
@@ -278,46 +296,50 @@ async function getUserNameById() {
   }
 }
 
-function deletePost(post_id) {
-  fetch("http://localhost:3065/posts/" + post_id, {
-    method: "DELETE",
-    body: post_id,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      console.log(response.status);
-      if (response.status === 200) {
-        window.location.href = "/posts";
-      }
-      return response.json();
-    })
-    .then((data) => {
-      alert("게시글 삭제 완료");
-    });
-  return false;
+const deletePost = async (post_id, user_id) => {
+    try {
+        const response = await fetch("http://localhost:3065/posts/" + post_id, {
+            method: "DELETE",
+            body: JSON.stringify({ user_id }),
+            credentials: "include",
+          });
+
+        if(response.status === 401) {
+            alert("삭제 권한 없음");
+        }
+        if(!response.ok) {
+            throw new Error("게시물 삭제 오류");
+        }
+        if(response.status === 200) {
+            alert("게시글 삭제 완료");
+            window.location.href = "/posts";
+        }
+    } catch(e) {
+        console.error(e);
+    }
 }
 
-function deleteComment(comment_id) {
-  const currentUrl = window.location.href;
-  const post_id = currentUrl.split("/").pop();
-  fetch("http://localhost:3065/posts/" + post_id + "/comments/" + comment_id, {
-    method: "DELETE",
-    body: post_id,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      console.log(response.status);
-      if (response.status === 200) {
-        location.reload();
-      }
-      return response.json();
-    })
-    .then((data) => {
-      alert("댓글 삭제 완료");
-    });
-  return false;
+const deleteComment = async (comment_id) => {
+    const currentUrl = window.location.href;
+    const post_id = currentUrl.split("/").pop();
+    try {
+        const response = await fetch("http://localhost:3065/posts/" + post_id + "/comments/" + comment_id, {
+            method: "DELETE",
+            body: post_id,
+            credentials: "include",
+          });
+        if(response.status === 403) {
+            alert("댓글 삭제 권한 없음");
+        }
+        if(!response.ok) {
+            throw new Error("댓글 삭제 오류");
+        }
+        if(response.status === 200) {
+            alert("댓글 삭제 완료");
+            window.location.reload();
+        }
+    } catch(e) {
+        console.error(e);
+    }
 }
+

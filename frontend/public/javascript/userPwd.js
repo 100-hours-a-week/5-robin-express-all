@@ -14,19 +14,19 @@ window.onload = async function () {
         <div class="header-right-overlay">
             <span class="mtp10"
             ><img
-                src="http://localhost:3065/${globalData.profile_image_path}"
+                src="http://localhost:3065/${globalData.data.profile_path}"
                 class="header-right"
             /></span>
             <div class="header-right-board">
-            <p><a href="/users/${globalData.user_id}">회원정보수정</a></p>
-            <p><a href="/users/${globalData.user_id}/password">비밀번호수정</a></p>
+            <p><a href="/users/${globalData.data.id}">회원정보수정</a></p>
+            <p><a href="/users/${globalData.data.id}/password">비밀번호수정</a></p>
             <p><a href="/">로그아웃</a></p>
             </div>
         </div>
     `;
   headerList.appendChild(header_div);
   const user_id = document.getElementById("user_id");
-  user_id.value = globalData.user_id;
+  user_id.value = globalData.data.id;
 };
 
 async function getUserNameById() {
@@ -47,30 +47,29 @@ async function getUserNameById() {
   }
 }
 
-function edit_send() {
-  const form = document.getElementById("edit_Form");
-  const formDataString = `user_id=${form.user_id.value}&password=${form.password.value}`;
-  fetch("http://localhost:3065/users/" + form.user_id.value + "/password", {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: formDataString,
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
-      if (response.status === 200) {
-        alert("수정완료");
-      }
-      window.location.href = "/";
-      return response.json();
-    })
-    .then((data) => {
-      console.log(data);
-    });
+const edit_send = async () => {
+    const form = document.getElementById("edit_Form");
+    const formDataString = `user_id=${form.user_id.value}&password=${form.password.value}`;
+    try {
+        const response = await fetch("http://localhost:3065/users/" + form.user_id.value + "/password", {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: formDataString,
+        });
+        if(!response.ok) {
+            throw new Error("비밀번호 수정 오류");
+        }
+        if(response.status === 200) {
+            alert("수정완료");
+            window.location.href = "/";
+        }
+    } catch(e) {
+        console.log(e);
+    }
 }
+
 
 document.getElementById("password").addEventListener("input", () => {
   const evalue = document.getElementById("password");

@@ -16,12 +16,12 @@ window.onload = async function () {
         <div class="header-right-overlay">
             <span class="mtp10"
             ><img
-                src="http://localhost:3065/${globalData.profile_image_path}"
+                src="http://localhost:3065/${globalData.data.profile_path}"
                 class="header-right"
             /></span>
             <div class="header-right-board">
-            <p><a href="/users/${globalData.user_id}">회원정보수정</a></p>
-            <p><a href="/users/${globalData.user_id}/password">비밀번호수정</a></p>
+            <p><a href="/users/${globalData.data.id}">회원정보수정</a></p>
+            <p><a href="/users/${globalData.data.id}/password">비밀번호수정</a></p>
             <p><a href="/">로그아웃</a></p>
             </div>
         </div>
@@ -33,11 +33,10 @@ window.onload = async function () {
   const noprofile = document.getElementById("noprofile_img");
   const form = document.getElementById("member_Form");
   const user_id = document.getElementById("user_id");
-  userEmailElement.textContent = globalData.email;
-  userNickname.value = globalData.nickname;
-  noprofile.src = "http://localhost:3065/" + globalData.profile_image_path;
-  form.action = "http://localhost:3065/users/" + globalData.user_id;
-  user_id.value = globalData.user_id;
+  userEmailElement.textContent = globalData.data.email;
+  userNickname.value = globalData.data.nickname;
+  noprofile.src = "http://localhost:3065/" + globalData.data.profile_path;
+  user_id.value = globalData.data.id;
 };
 
 async function getUserNameById() {
@@ -50,7 +49,6 @@ async function getUserNameById() {
       throw new Error("Get Users Network error");
     }
     const data = await response.json();
-    console.log(data);
     return data;
   } catch (error) {
     console.error("there", error);
@@ -94,44 +92,51 @@ function checkProfile() {
   }
 }
 
-function member_sendit() {
-  let form = document.getElementById("member_Form");
-  const heltext = document.getElementById("helper-nickname");
-  let nickname = form.nickname.value;
-  const file = document.getElementById("profile-upload-input").files[0];
-  const formData = new FormData();
-  const check_img = document.getElementById("check_img").value;
-  formData.append("image", file);
-  if (check_img == "1") {
-    fetch("http://localhost:3065/users/upload/profile-image", {
-      method: "POST",
-      body: formData,
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+document.getElementById("member_Form").addEventListener("submit", (event) => {
+    event.preventDefault(); // form의 자동 제출을 막음
+    member_sendit(); // fetch 요청 시작
+  });
+
+const member_sendit = async () => {
+    let form = document.getElementById("member_Form");
+    const user_id = form.user_id.value;
+    const nickname = form.nickname.value;
+    const file = document.getElementById("profile-upload-input").files[0];
+    const formData = new FormData();
+    const check_img = document.getElementById("check_img").value;
+    formData.append("image", file);
+    let profilePath;
+    if(check_img == "1") {
+        const imgResponse = await fetch("http://localhost:3065/users/upload/profile-image", {
+            method: "POST",
+            body: formData,
+        });
+        if(imgResponse.status === 201) {
+            const data = await imgResponse.json();
+            console.log(data);
+            profilePath = data.message;
         }
-        if (response.status === 200) {
-          let tostMessage = document.getElementById("member-btn");
-          tostMessage.classList.add("toast-active");
-          setTimeout(function () {
-            tostMessage.classList.remove("toast-active");
-          }, 3000);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        const messageInput = document.createElement("input");
-        messageInput.type = "hidden";
-        messageInput.name = "profilePath";
-        messageInput.value = data.message;
-        form.appendChild(messageInput);
-        form.submit();
-      });
-    return false;
-  } else {
-    form.submit();
-  }
+    }
+    const response = await fetch("http://localhost:3065/users/"+ user_id, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id, nickname, profilePath, check_img }),
+    });
+    if(response.status === 409) {
+        document.getElementById('helper-nickname').textContent = '중복되는 닉네임입니다.';
+    }
+    if(!response.ok) {
+        throw new Error("글쓰기 실패");
+    }
+    if(response.status === 200) {
+        let tostMessage = document.getElementById("member-btn");
+        tostMessage.classList.add("toast-active");
+        setTimeout(function () {
+        tostMessage.classList.remove("toast-active");
+        }, 1000);
+    }
 }
 
 function delUser() {

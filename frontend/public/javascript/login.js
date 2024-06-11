@@ -1,55 +1,40 @@
-function login_sendit() {
-  let email = document.getElementById("email").value;
-  let password = document.getElementById("password").value;
-  const pwdHelper = document.getElementById("helper-text");
-  const pattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-za-z0-9\-]+/;
-  if (!checkEmail(email)) {
+const login_sendit = async () => {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const pwdHelper = document.getElementById("helper-text");
+    const pattern = /^[A-Za-z0-9_\.\-]+@[A-Za-z0-9\-]+\.[A-za-z0-9\-]+/;
+    if (!checkEmail(email)) {
     alert("올바른 이메일 주소 형식을 입력해주세요. (예: example@example.com)");
     return false;
-  }
-  if (password.length < 7 || password == null || !checkPwd(password)) {
+    }
+    if (password.length < 7 || password == null || !checkPwd(password)) {
     alert("입력하신 계정정보가 정확하지 않았습니다.");
     return false;
-  } else {
-    /*백엔드 중복 검사 */
-    fetch("http://localhost:3065/users/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({ email: email, password: password }),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          if (response.status === 401) {
-            alert("비밀번호가 다릅니다.");
-            return;
-          } else {
+    }
+
+    try {
+        const response = await fetch("http://localhost:3065/users/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ email, password }),
+        });
+        if(!response.ok) {
+            if (response.status === 401) {
+                document.getElementById("helper-text").textContent = "비밀번호가 다릅니다.";
+            }
             throw new Error("Network response was not ok");
-          }
         }
-        console.log(response.status);
         if (response.status === 200) {
-          window.location.href = "/posts";
+            window.location.href = "/posts";
         }
-        return response.json();
-      })
-      .then((data) => {
-        // 응답 데이터를 처리합니다.
-        console.log(data);
-        return;
-        // 여기서 받은 응답을 이용하여 다음 동작을 수행할 수 있습니다.
-      })
-      .catch((error) => {
-        console.error(
-          "There has been a problem with your fetch operation:",
-          error,
-        );
-        // 에러가 발생한 경우 처리합니다.
-      });
-  }
-}
+        const data = await response.json();
+    } catch (e) {
+        console.error("There has been a problem with your fetch operation:", e);
+    }
+};
 
 function checkEmail(email) {
   const pattern = /^[A-Za-z\.\-]+@[A-Za-z\-]+\.[A-za-z\-]+/;

@@ -1,3 +1,63 @@
+const signin_sendit = async () => {
+    let form = document.getElementById("signin_Form");
+    const email = form.email.value;
+    const password = form.password.value;
+    const password_chk = form.password_chk.value;
+    const nickname = form.nickname.value;
+    //const profile_img = document.getElementById("profile").value;
+    try {
+        
+        const file = document.getElementById("profile").files[0];
+        const formData = new FormData();
+        formData.append("image", file);
+        const imgResponse = await fetch("http://localhost:3065/users/upload/profile-image", {
+            method: "POST",
+            body: formData,
+        });
+        if(!imgResponse.ok) {
+            throw new Error("이미지 업로드 실패");
+        }
+        if(imgResponse.status === 500) {
+            throw new Error("이미지 업로드 실패");
+        }
+
+        let profilePath;
+        if(imgResponse.status === 201) {
+            const imgPath = await imgResponse.json();
+            profilePath = imgPath.message;
+        }
+
+        const response = await fetch("http://localhost:3065/users/signup" , {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password, nickname, profilePath }),
+        });
+        const data = await response.json();
+        if(response.status === 500) {
+            throw new Error("회원가입 실패");
+        }
+        if(response.status === 409) {
+            if(data.type === 'email') {
+                document.getElementById("helper_email").textContent = "중복된 이메일 입니다.";
+            } else if(data.type === 'nickname') {
+                document.getElementById("helper_email").textContent = "사용 가능한 이메일 입니다.";
+                document.getElementById("helper_nickname").textContent = "중복된 닉네임 입니다.";
+            }
+        }
+        if(!response.ok) {
+            throw new Error("회원가입 실패");
+        }
+        if(response.status === 201) {
+            alert("회원가입 완료");
+            window.location.href = "/";
+        }
+    } catch(e) {
+        console.error(e);
+    }
+};
+/*
 function signin_sendit() {
   let form = document.getElementById("signin_Form");
   let email = form.email.value;
@@ -49,7 +109,6 @@ function signin_sendit() {
     alert("프로필 사진을 추가해주세요");
     return false;
   } else {
-    /* 프로필 이미지 넘기기 */
     const file = document.getElementById("profile").files[0];
     const formData = new FormData();
     formData.append("image", file);
@@ -75,6 +134,13 @@ function signin_sendit() {
     return false;
   }
 }
+*/
+document.getElementById("signin_Form").addEventListener("submit", (event) => {
+    event.preventDefault(); // form의 자동 제출을 막음
+    signin_sendit(); // fetch 요청 시작
+  });
+  
+
 
 function checkEmail(email) {
   const pattern = /^[A-Za-z\.\-]+@[A-Za-z\-]+\.[A-za-z\-]+/;
@@ -142,11 +208,9 @@ document.getElementById("email").addEventListener("input", () => {
   } else if (!pattern.test(evalue.value) || evalue.value.length < 7) {
     h_email.textContent =
       "올바른 이메일 주소 형식을 입력해주세요. (예: example@example.com)";
-  } else if (evalue.value === "example@example.com") {
-    h_email.textContent = "중복된 이메일입니다.";
   } else {
     console.log("btn1");
-    h_email.textContent = "사용가능한 이메일입니다.";
+    h_email.textContent = "";
   }
 });
 document.getElementById("password").addEventListener("input", () => {
@@ -188,18 +252,14 @@ document.getElementById("nickname").addEventListener("input", () => {
     h_pwd.textContent = "닉네임을 입력해주세요";
   } else if (pattern.test(evalue.value)) {
     h_pwd.textContent = "띄어쓰기를 없애주세요.";
-  } else if (evalue.value === "robin") {
-    h_pwd.textContent = "중복된 닉네임 입니다.";
   } else if (evalue.value.length > 10) {
     h_pwd.textContent = "닉네임은 최대 10자까지 가능합니다.";
   } else {
     console.log("btn1");
-    h_pwd.textContent = "사용가능한 닉네임입니다.";
+    h_pwd.textContent = "";
   }
 });
 
 function imgInput() {
-  document.getElementById("img-input").addEventListener("click", () => {
     document.getElementById("profile").click();
-  });
 }

@@ -1,78 +1,51 @@
 const path = require("path");
 const fileSystem = require('fs');
 const { upload } = require('../controllers/fileStorage.js');
-
+const { checkEmail, checkNickName, createUser, checkAccount, editUser, editPassword, delUser } = require('../models/userModel.js');
 const __dpath = path.resolve();
 
 
 
-function validAccount(req, res) {
-    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
-    let users = JSON.parse(userFile);
-    const user = users;
-    const email = req.body.email;
-    const password = req.body.password;
-    if (!email) {
-        res.json({
-            status: 400,
-            message: 'required_email',
-            data: null
-        });
-    } else {
-        let check = -1;
-        for (let i = 0; i < user.length; i++) {
-            console.log(user[i].email);
-            if (user[i].email === email && user[i].password === password) {
-                check = i;
-            }
+async function validAccount(req, res) {
+    const { email, password } = req.body;
+    try {
+        const accountExists = await checkAccount(email, password);
+        if(!accountExists) {
+            return res.status(401).json({message : '존재하지 않는 아이디입니다.'});
         }
-        if (check > -1) {
-            //세션디스트로이 로그인에서
-            
-            req.session.user = user[check];
-            console.log(req.session.user);
-            //res.cookie('sessionCookie', req.sessionID, { httpOnly: true });
-            res.header('Access-Control-Allow-Origin', 'http://localhost:3000'); // 클라이언트 주소
-            res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-            res.json({
-                status: 200,
-                message: 'login_success',
-                data: user[check]
-            });
-        } else {
-            console.log('로그인 실패');
-            res.status(401).json({
-                status: 401,
-                message: 'invalid_email_or_password',
-                data: null
-            })
-        }
+
+        req.session.userId = accountExists.id;
+        req.session.email = email;
+
+        res.status(200).json({ message: '로그인 성공'});
+    } catch(err) {
+        res.status(500).json({error: err.message});
     }
 }
 
-function signAccount(req, res) {
-    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
-    let users = JSON.parse(userFile);
-    const user = users;
-    const email = req.body.email;
-    const password = req.body.password;
-    const nickname = req.body.nickname;
-    const profilePath = req.body.profilePath;
+async function signAccount(req, res) {
+    const {email, password, nickname, profilePath } = req.body;
 
-    console.log(profilePath);
-    let userId = parseInt(user[user.length - 1].user_id) + 1;
-
-    const userData = {
-        user_id: userId,
-        email: email,
-        password: password,
-        nickname: nickname,
-        profile_image_path: profilePath
-    };
-    user.push(userData);
-    const newUser = JSON.stringify(user);
-    fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
-    res.redirect('http://localhost:3000');
+    try {
+        const emailExists = await checkEmail(email);
+        const nicknameExists = await checkNickName(nickname);
+        if(emailExists) {
+            return res.status(409).json({message : '존재하는 이메일입니다.', type : "email" });
+        }
+        if(nicknameExists) {
+            return res.status(409).json({message : '존재하는 닉네임입니다.', type : "nickname"});
+        }
+        const result = await createUser(email, password, nickname, profilePath);
+        const userId = result.insertId;
+        res.status(201).json({
+            message: 'reg_success',
+            data: {
+                userId : userId,
+            }
+        });
+    } catch (err) {
+        res.status(500).json({error: err.message});
+    }
 }
 
 function uploadProfile(req, res) {
@@ -85,110 +58,50 @@ function uploadProfile(req, res) {
             console.log('File uploaded successfully:', req.file);
             const filePath = req.file.path;
             console.log(filePath);
-            res.json({
+            res.status(201).json({
                 message: filePath
-            })
+            });
         }
     });
 }
 
-function editAccount(req, res) {
-    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
-    let users = JSON.parse(userFile);
-    const user = users;
-    const user_id = req.body.user_id;
-    const nickname = req.body.nickname;
-    const profilePath = req.body.profilePath;
-    const check_img = req.body.check_img;
+async function editAccount(req, res) {
+    const { user_id, nickname, profilePath, check_img } = req.body;
+    try {
+        const nicknameExists = await checkNickName(nickname);
+        if(nicknameExists) {
+            return res.status(409).json({message : '존재하는 닉네임입니다.', type : "nickname"});
+        }
+        const result = await editUser(user_id ,nickname, profilePath, check_img);
+        res.status(200).json({data: result});
+    } catch (err) {
+        res.status(500).json({error: err.message});
+    }
+    
+}
 
-    const edituser = [];
-    if(check_img == '0') {
-        console.log("keep img");
-        for (let i = 0; i < user.length; i++) {
-            if (user[i].user_id == user_id) {
-                console.log(user_id+"유저 변경");
-                const userData = {
-                    user_id: user_id,
-                    email: user[i].email,
-                    password: user[i].password,
-                    nickname: nickname,
-                    profile_image_path: user[i].profile_image_path
-                };
-                req.session.user = userData;
-                edituser.push(userData);
-            } else {
-                edituser.push(user[i]);
-            }
-        }
-        const newUser = JSON.stringify(edituser);
-        fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
-        res.redirect('http://localhost:3000/users/'+user_id);
-    } else {
-        console.log("change img");
-        for (let i = 0; i < user.length; i++) {
-            if (user[i].user_id == user_id) {
-                console.log(user_id+"유저 변경");
-                const userData = {
-                    user_id: user_id,
-                    email: user[i].email,
-                    password: user[i].password,
-                    nickname: nickname,
-                    profile_image_path: profilePath
-                };
-                edituser.push(userData);
-            } else {
-                edituser.push(user[i]);
-            }
-        }
-        const newUser = JSON.stringify(edituser);
-        fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
-        res.redirect('http://localhost:3000/users/'+user_id);
+async function editPwd(req, res) {
+    const { password } = req.body;
+    const user_id = req.params.userId;
+    console.log(user_id);
+    try {
+        const result = await editPassword(user_id , password);
+        res.status(200).json({data: result});
+    } catch (err) {
+        res.status(500).json({error: err.message});
     }
 }
 
-function editPwd(req, res) {
-    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
-    let users = JSON.parse(userFile);
-    const user = users;
-    const user_id = req.body.user_id;
-    const password = req.body.password;
-    const editpwd = [];
-    for(let i = 0; i < user.length; i++) {
-        if(user[i].user_id == user_id) {
-            const userData = {
-                user_id: user_id,
-                email: user[i].email,
-                password: password,
-                nickname: user[i].nickname,
-                profile_image_path: user[i].profile_image_path
-            };
-            editpwd.push(userData);
-        } else {
-            editpwd.push(user[i]);
-        }
+async function delAccount(req, res) {
+    const user_id = req.params.userId;
+    try {
+        const result = await delUser(user_id);
+        res.status(200).json({data: result});
+    } catch (err) {
+        res.status(500).json({error: err.message});
     }
-    const newUser = JSON.stringify(editpwd);
-    fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
-    res.status(200).json({message: "edit-password"});
 }
 
-function delAccount(req, res) {
-    const userFile = fileSystem.readFileSync(__dpath + '/models/user.json', 'utf8');
-    let users = JSON.parse(userFile);
-    const user = users;
-    const user_id = req.body.user_id;
-    const deluser = [];
-    for(let i = 0; i < user.length; i++) {
-        if(user[i].user_id == user_id) {
-            console.log(user_id+'삭제');
-        } else {
-            deluser.push(user[i]);
-        }
-    }
-    const newUser = JSON.stringify(deluser);
-    fileSystem.writeFileSync(__dpath + '/models/user.json', newUser, 'utf8');
-    res.status(200).json({message: "del-password"});
-}
 
 module.exports = {
     validAccount,

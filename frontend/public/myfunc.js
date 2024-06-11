@@ -1,47 +1,4 @@
-function member_sendit() {
-  let form = document.getElementById("member_Form");
-  const heltext = document.getElementById("helper-nickname");
-  let nickname = form.nickname.value;
-  fetch("../data/user.json")
-    .then((Response) => {
-      if (!Response.ok) {
-        throw new Error("net");
-      }
-      return Response.json();
-    })
-    .then((data) => {
-      let check = "0";
-      const nickname = document.getElementById("nickname").value;
-      console.log(nickname);
-      data.data.forEach((user) => {
-        if (user.nickname === nickname) {
-          check = "1";
-        }
-      });
 
-      if (check === "1") {
-        heltext.textContent = "중복된 닉네임 입니다.";
-        return false;
-      } else if (nickname.length > 10) {
-        heltext.textContent = "닉네임은 최대 10자까지 작성 가능합니다.";
-        return false;
-      } else if (nickname == "") {
-        heltext.textContent = "닉네임을 입력해주세요.";
-        return false;
-      } else {
-        console.log("toast message");
-        let toastmessage = document.getElementById("member-btn");
-        toastmessage.classList.add("toast-active");
-        setTimeout(function () {
-          toastmessage.classList.remove("toast-active");
-        }, 1000);
-      }
-    })
-    .catch((error) => {
-      console.error("error", error);
-    });
-  return false;
-}
 
 function checkEmail(email) {
   const pattern = /^[A-Za-z\.\-]+@[A-Za-z\-]+\.[A-za-z\-]+/;
